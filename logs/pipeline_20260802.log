@@ -1,0 +1,72 @@
+2026-08-02 22:17:46,963 | INFO     | pipeline | ==================================================
+2026-08-02 22:17:46,964 | INFO     | pipeline | PIPELINE START: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 22:17:46,964 | INFO     | pipeline | ==================================================
+2026-08-02 22:17:46,964 | INFO     | pipeline | Step 1/3 — Generating script...
+2026-08-02 22:17:47,254 | INFO     | script_agent | ScriptAgent initialised with model: llama-3.1-8b-instant
+2026-08-02 22:17:47,255 | INFO     | script_agent | Generating script for topic: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 22:17:47,448 | ERROR    | script_agent | Script generation failed: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+2026-08-02 22:17:47,449 | ERROR    | pipeline | Unexpected error: name 'logger' is not defined
+Traceback (most recent call last):
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\agents\script_agent.py", line 43, in generate
+    response = self.llm.invoke(prompt)
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\language_models\chat_models.py", line 476, in invoke
+    self.generate_prompt(
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\language_models\chat_models.py", line 1849, in generate_prompt
+    return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\language_models\chat_models.py", line 1656, in generate
+    self._generate_with_cache(
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_core\language_models\chat_models.py", line 1994, in _generate_with_cache
+    result = self._generate(
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\langchain_groq\chat_models.py", line 627, in _generate
+    response = self.client.create(messages=message_dicts, **params)
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\groq\resources\chat\completions.py", line 461, in create
+    return self._post(
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\groq\_base_client.py", line 1242, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "C:\Users\wwwja\AppData\Local\Programs\Python\Python310\lib\site-packages\groq\_base_client.py", line 1044, in request
+    raise self._make_status_error_from_response(err.response) from None
+groq.AuthenticationError: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\core\errors.py", line 12, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\agents\script_agent.py", line 65, in generate
+    raise ScriptGenerationError(str(e)) from e
+core.errors.ScriptGenerationError: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\pipeline.py", line 47, in run
+    script_data = script_agent.generate(topic, style=style)
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\core\errors.py", line 17, in wrapper
+    logger.warning(
+NameError: name 'logger' is not defined
+2026-08-02 22:21:11,139 | INFO     | pipeline | ==================================================
+2026-08-02 22:21:11,139 | INFO     | pipeline | PIPELINE START: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 22:21:11,140 | INFO     | pipeline | ==================================================
+2026-08-02 22:21:11,140 | INFO     | pipeline | Step 1/3 — Generating script...
+2026-08-02 22:21:11,405 | INFO     | script_agent | ScriptAgent initialised with model: llama-3.1-8b-instant
+2026-08-02 22:21:11,406 | INFO     | script_agent | Generating script for topic: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 22:21:11,926 | INFO     | script_agent | Script generated: 'Top 3 AI Tools for Indian Entrepreneurs in 2025'
+2026-08-02 22:21:11,927 | INFO     | pipeline | Script: 'Top 3 AI Tools for Indian Entrepreneurs in 2025'
+2026-08-02 22:21:11,927 | INFO     | pipeline | Step 2/3 — Generating voice...
+2026-08-02 22:21:11,950 | INFO     | voice_agent | VoiceAgent initialised
+2026-08-02 22:21:11,951 | ERROR    | pipeline | Unexpected error: name 'logger' is not defined
+Traceback (most recent call last):
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\core\errors.py", line 12, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\agents\voice_agent.py", line 35, in generate
+    raise VoiceGenerationError(
+core.errors.VoiceGenerationError: Unknown voice: 'rachel'. Available: ['indman']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\pipeline.py", line 54, in run
+    audio_path = voice_agent.generate(
+  File "C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\core\errors.py", line 17, in wrapper
+    logger.warning(
+NameError: name 'logger' is not defined
