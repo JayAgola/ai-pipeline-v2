@@ -5,3 +5,11 @@ venv/
 client_secrets.json
 youtube_token.json
 *.json  # careful — only if you don't need other JSON committed
+
+node_modules
+dist
+.DS_Store
+output/
+video/public/voice.mp3
+*.mp4
+*.mp3

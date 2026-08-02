@@ -218,3 +218,18 @@ npm error A complete log of this run can be found in: C:\Users\wwwja\AppData\Loc
 2026-08-02 22:57:52,588 | ERROR    | pipeline | Pipeline failed: VideoRenderError: npm error could not determine executable to run
 npm error A complete log of this run can be found in: C:\Users\wwwja\AppData\Local\npm-cache\_logs\2026-08-02T17_27_50_670Z-debug-0.log
 
+2026-08-02 23:08:41,019 | INFO     | pipeline | ==================================================
+2026-08-02 23:08:41,020 | INFO     | pipeline | PIPELINE START: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 23:08:41,020 | INFO     | pipeline | ==================================================
+2026-08-02 23:08:41,020 | INFO     | pipeline | Step 1/3 — Generating script...
+2026-08-02 23:08:41,212 | INFO     | script_agent | ScriptAgent initialised with model: llama-3.1-8b-instant
+2026-08-02 23:08:41,213 | INFO     | script_agent | Generating script for topic: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 23:08:41,764 | INFO     | script_agent | Script generated: 'Accelerate Your Business with AI in 2025'
+2026-08-02 23:08:41,765 | INFO     | pipeline | Script: 'Accelerate Your Business with AI in 2025'
+2026-08-02 23:08:41,766 | INFO     | pipeline | Step 3/3 — Rendering video (this takes 3-5 min)...
+2026-08-02 23:08:41,820 | INFO     | video_agent | Rendering: 'Accelerate Your Business with AI in 2025' (644 frames)
+2026-08-02 23:09:31,071 | INFO     | video_agent | Render complete: C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\output\final_video.mp4
+2026-08-02 23:09:31,071 | INFO     | pipeline | ==================================================
+2026-08-02 23:09:31,071 | INFO     | pipeline | PIPELINE COMPLETE in 50.1s
+2026-08-02 23:09:31,071 | INFO     | pipeline | Output: C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\output\final_video.mp4
+2026-08-02 23:09:31,071 | INFO     | pipeline | ==================================================
