@@ -1,5 +1,7 @@
 import time
 from functools import wraps
+from core.logger import get_logger
+logger = get_logger("pipeline")
 
 def retry(max_attempts: int = 3, delay: float = 2.0, exceptions=(Exception,)):
     """Decorator that retries a function on failure."""

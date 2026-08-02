@@ -14,7 +14,7 @@ logger = get_logger("pipeline")
 
 def run(
     topic: str,
-    voice: str = "rachel",
+    voice: str = "indman",
     style: str = "educational",
     upload_to_youtube: bool = False
 ) -> dict:
@@ -48,14 +48,14 @@ def run(
         results["script"] = script_data
         logger.info(f"Script: '{script_data['title']}'")
 
-        # Step 2: Generate voice
-        logger.info("Step 2/3 — Generating voice...")
-        voice_agent = VoiceAgent()
-        audio_path = voice_agent.generate(
-            text=script_data["script"],
-            voice_name=voice
-        )
-        results["audio_path"] = str(audio_path)
+        # # Step 2: Generate voice
+        # logger.info("Step 2/3 — Generating voice...")
+        # voice_agent = VoiceAgent()
+        # audio_path = voice_agent.generate(
+        #     text=script_data["script"],
+        #     voice_name=voice
+        # )
+        # results["audio_path"] = str(audio_path)
 
         # Step 3: Render video (calls Remotion via subprocess)
         logger.info("Step 3/3 — Rendering video (this takes 3-5 min)...")
@@ -108,7 +108,7 @@ def run(
 if __name__ == "__main__":
     result = run(
         topic="Top 3 AI tools every Indian entrepreneur should use in 2025",
-        voice="rachel",
+        voice="indman",
         style="educational",
         upload_to_youtube=False  # set True when ready to upload
     )

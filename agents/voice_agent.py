@@ -1,9 +1,9 @@
 from pathlib import Path
 from elevenlabs.client import ElevenLabs
-from elevenlabs import save
+from elevenlabs import save,VoiceSettings
 from core.config import ELEVENLABS_API_KEY, VOICE_IDS, DEFAULT_VOICE, VOICE_FILE
 from core.logger import get_logger
-from core.errors import VoiceGenerationError
+from core.errors import VoiceGenerationError,QuotaExceededError,ConfigError
 from core.errors import retry
 
 logger = get_logger("voice_agent")
@@ -22,6 +22,8 @@ class VoiceAgent:
         self,
         text: str,
         voice_name: str = DEFAULT_VOICE,
+        stability: float = 0.5,
+        similarity_boost: float = 0.75,
         output_path: Path = VOICE_FILE
     ) -> Path:
         """
@@ -40,11 +42,20 @@ class VoiceAgent:
         logger.info(f"Generating voice: {voice_name} | {char_count} chars")
 
         try:
-            audio = self.client.generate(
+            # audio = self.client.text_to_speech.convert(
+            #     text=text,
+            #     voice=voice_id,
+            #     model="eleven_multilingual_v2",
+            #     voice_settings={"stability": 0.5, "similarity_boost": 0.75}
+            # )
+            audio = self.client.text_to_speech.convert(
+                voice_id=voice_id,
+                model_id="eleven_multilingual_v2",
                 text=text,
-                voice=voice_id,
-                model="eleven_multilingual_v2",
-                voice_settings={"stability": 0.5, "similarity_boost": 0.75}
+                voice_settings=VoiceSettings(
+                    stability=stability,
+                    similarity_boost=similarity_boost
+                ),
             )
             output_path.parent.mkdir(parents=True, exist_ok=True)
             save(audio, str(output_path))

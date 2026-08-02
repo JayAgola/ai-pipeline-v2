@@ -2,7 +2,7 @@ import json
 from langchain_groq import ChatGroq
 from core.config import GROQ_API_KEY
 from core.logger import get_logger
-from core.errors import ScriptGenerationError
+from core.errors import ScriptGenerationError,ConfigError
 from core.errors import retry
 
 logger = get_logger("script_agent")
