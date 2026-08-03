@@ -5,7 +5,7 @@ venv/
 client_secrets.json
 youtube_token.json
 *.json  # careful — only if you don't need other JSON committed
-
+logs/
 node_modules
 dist
 .DS_Store
