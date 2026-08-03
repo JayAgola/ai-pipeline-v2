@@ -48,14 +48,14 @@ def run(
         results["script"] = script_data
         logger.info(f"Script: '{script_data['title']}'")
 
-        # # Step 2: Generate voice
-        # logger.info("Step 2/3 — Generating voice...")
-        # voice_agent = VoiceAgent()
-        # audio_path = voice_agent.generate(
-        #     text=script_data["script"],
-        #     voice_name=voice
-        # )
-        # results["audio_path"] = str(audio_path)
+        # Step 2: Generate voice
+        logger.info("Step 2/3 — Generating voice...")
+        voice_agent = VoiceAgent()
+        audio_path = voice_agent.generate(
+            text=script_data["script"],
+            voice_name=voice
+        )
+        results["audio_path"] = str(audio_path)
 
         # Step 3: Render video (calls Remotion via subprocess)
         logger.info("Step 3/3 — Rendering video (this takes 3-5 min)...")

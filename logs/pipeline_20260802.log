@@ -233,3 +233,18 @@ npm error A complete log of this run can be found in: C:\Users\wwwja\AppData\Loc
 2026-08-02 23:09:31,071 | INFO     | pipeline | PIPELINE COMPLETE in 50.1s
 2026-08-02 23:09:31,071 | INFO     | pipeline | Output: C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\output\final_video.mp4
 2026-08-02 23:09:31,071 | INFO     | pipeline | ==================================================
+2026-08-02 23:15:08,182 | INFO     | pipeline | ==================================================
+2026-08-02 23:15:08,182 | INFO     | pipeline | PIPELINE START: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 23:15:08,183 | INFO     | pipeline | ==================================================
+2026-08-02 23:15:08,183 | INFO     | pipeline | Step 1/3 — Generating script...
+2026-08-02 23:15:08,386 | INFO     | script_agent | ScriptAgent initialised with model: llama-3.1-8b-instant
+2026-08-02 23:15:08,387 | INFO     | script_agent | Generating script for topic: 'Top 3 AI tools every Indian entrepreneur should use in 2025'
+2026-08-02 23:15:08,899 | INFO     | script_agent | Script generated: 'AI Tools for Indian Entrepreneurs in 2025'
+2026-08-02 23:15:08,900 | INFO     | pipeline | Script: 'AI Tools for Indian Entrepreneurs in 2025'
+2026-08-02 23:15:08,900 | INFO     | pipeline | Step 3/3 — Rendering video (this takes 3-5 min)...
+2026-08-02 23:15:08,939 | INFO     | video_agent | Rendering: 'AI Tools for Indian Entrepreneurs in 2025' (644 frames)
+2026-08-02 23:15:45,103 | INFO     | video_agent | Render complete: C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\output\final_video.mp4
+2026-08-02 23:15:45,103 | INFO     | pipeline | ==================================================
+2026-08-02 23:15:45,103 | INFO     | pipeline | PIPELINE COMPLETE in 36.9s
+2026-08-02 23:15:45,104 | INFO     | pipeline | Output: C:\Users\wwwja\OneDrive\Desktop\goal\ai-pipeline-v2\output\final_video.mp4
+2026-08-02 23:15:45,104 | INFO     | pipeline | ==================================================
