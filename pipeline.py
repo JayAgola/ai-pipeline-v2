@@ -18,8 +18,6 @@ def run(
     style: str = "educational",
     upload_to_youtube: bool = False
 ) -> dict:
-
-
     """
     Run the full AI video pipeline.
 
