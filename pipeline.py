@@ -21,11 +21,13 @@ def run(
     """
     Run the full AI video pipeline.
 
+
     Args:
         topic: The video topic
         voice: Voice name (rachel/adam/bella)
         style: Script style (educational/conversational/news)
         upload_to_youtube: Whether to auto-upload after render
+
 
     Returns:
         dict with pipeline results
