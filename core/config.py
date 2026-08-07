@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from logger import get_logger
+from errors import ConfigError
 
 load_dotenv()
-
+logger = get_logger()
 # Base paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 VIDEO_DIR = BASE_DIR / "video"
@@ -21,6 +23,9 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+INSTAGRAM_ACCOUNT_ID = os.getenv("INSTAGRAM_ACCOUNT_ID")
+META_ACCESS_TOKEN = os.getenv("META_ACCESS_TOKEN")
 
 # ElevenLabs voice IDs
 VOICE_IDS = {
@@ -44,7 +49,8 @@ def validate_config():
     missing = []
     if not GROQ_API_KEY: missing.append("GROQ_API_KEY")
     if not ELEVENLABS_API_KEY: missing.append("ELEVENLABS_API_KEY")
+    # Instagram is optional — only warn, don't raise
+    if not INSTAGRAM_ACCOUNT_ID:
+        logger.warning("INSTAGRAM_ACCOUNT_ID not set — Instagram posting disabled")
     if missing:
-        raise EnvironmentError(
-            f"Missing required environment variables: {', '.join(missing)}"
-        )
+        raise ConfigError(f"Missing required env vars: {', '.join(missing)}")
