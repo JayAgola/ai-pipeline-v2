@@ -14,6 +14,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from duckduckgo_search import DDGS
 from core.logger import get_logger
 from core.errors import ScriptGenerationError
+from core.config import GROQ_API_KEY
 
 logger = get_logger("multi_agent")
 
@@ -30,7 +31,7 @@ class PipelineState(TypedDict):
 
 # ── LLM Setup ─────────────────────────────────────────────────
 llm = ChatGroq(
-    api_key=os.getenv("GROQ_API_KEY"),
+    api_key=GROQ_API_KEY,
     model="llama-3.1-8b-instant"
 )
 
