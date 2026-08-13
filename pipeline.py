@@ -4,7 +4,8 @@ Clean, modular, production-ready.
 Usage: python pipeline.py
 """
 import time
-from core.config import validate_config, OUTPUT_VIDEO,INSTAGRAM_ACCOUNT_ID
+from core.config import validate_config, OUTPUT_VIDEO
+# from core.config import validate_config, OUTPUT_VIDEO,INSTAGRAM_ACCOUNT_ID
 from core.logger import get_logger
 from core.errors import PipelineError
 from agents.script_agent import ScriptAgent
@@ -85,41 +86,41 @@ def run(
             youtube_url = ""
 
         # Step 5: Instagram post (optional)
-        if post_to_instagram:
-            logger.info("Posting to Instagram...")
+        # if post_to_instagram:
+        #     logger.info("Posting to Instagram...")
 
-            # Generate thumbnail
-            thumb_agent = ThumbnailAgent()
-            thumb_path = thumb_agent.generate(
-                title=script_data["title"],
-                subtitle=script_data["subtitle"]
-            )
+        #     # Generate thumbnail
+        #     thumb_agent = ThumbnailAgent()
+        #     thumb_path = thumb_agent.generate(
+        #         title=script_data["title"],
+        #         subtitle=script_data["subtitle"]
+        #     )
 
-            # Build Instagram caption
-            caption = (
-                f"{script_data['title']}\n\n"
-                f"{script_data['script'][:200]}...\n\n"
-            )
+        #     # Build Instagram caption
+        #     caption = (
+        #         f"{script_data['title']}\n\n"
+        #         f"{script_data['script'][:200]}...\n\n"
+        #     )
 
-            if youtube_url:
-                caption += f"Watch the full video: {youtube_url}\n\n"
+        #     if youtube_url:
+        #         caption += f"Watch the full video: {youtube_url}\n\n"
 
-            caption += (
-                f"#AIcontent #automation #"
-                f"{topic.replace(' ', '')[:20]} "
-                f"#BuildingInPublic #AItools"
-            )
+        #     caption += (
+        #         f"#AIcontent #automation #"
+        #         f"{topic.replace(' ', '')[:20]} "
+        #         f"#BuildingInPublic #AItools"
+        #     )
 
-            ig_agent = InstagramAgent(
-                account_id=os.getenv("INSTAGRAM_ACCOUNT_ID")
-            )
+        #     ig_agent = InstagramAgent(
+        #         account_id=os.getenv("INSTAGRAM_ACCOUNT_ID")
+        #     )
 
-            ig_result = ig_agent.post(
-                local_image_path=thumb_path,
-                caption=caption
-            )
+        #     ig_result = ig_agent.post(
+        #         local_image_path=thumb_path,
+        #         caption=caption
+        #     )
 
-            results["platforms"]["instagram"] = ig_result
+        #     results["platforms"]["instagram"] = ig_result
 
         results["success"] = True
 

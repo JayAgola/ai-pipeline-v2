@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from logger import get_logger
-from errors import ConfigError
+from core.logger import get_logger
+from core.errors import ConfigError
 
 load_dotenv()
-logger = get_logger()
+logger = get_logger("config")
 # Base paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 VIDEO_DIR = BASE_DIR / "video"
@@ -50,7 +50,7 @@ def validate_config():
     if not GROQ_API_KEY: missing.append("GROQ_API_KEY")
     if not ELEVENLABS_API_KEY: missing.append("ELEVENLABS_API_KEY")
     # Instagram is optional — only warn, don't raise
-    if not INSTAGRAM_ACCOUNT_ID:
-        logger.warning("INSTAGRAM_ACCOUNT_ID not set — Instagram posting disabled")
+    # if not INSTAGRAM_ACCOUNT_ID:
+    #     logger.warning("INSTAGRAM_ACCOUNT_ID not set — Instagram posting disabled")
     if missing:
         raise ConfigError(f"Missing required env vars: {', '.join(missing)}")
