@@ -10,6 +10,7 @@ from core.errors import (
     retry,
 )
 from agents.multi_agent_pipeline import run_multi_agent_pipeline
+from agents.knowledge_base import ContentKnowledgeBase
 
 logger = get_logger("script_agent")
 
@@ -30,6 +31,7 @@ class ScriptAgent:
             api_key=GROQ_API_KEY,
             model=model,
         )
+        self.kb = ContentKnowledgeBase()
 
         logger.info(
             f"ScriptAgent initialized with model: {model} "
@@ -40,14 +42,6 @@ class ScriptAgent:
     def generate(self, topic: str, style: str = "educational") -> dict:
         """
         Generate a structured video script.
-
-        Returns:
-            dict with keys:
-                - title
-                - subtitle
-                - script
-                - points
-                - channel_name
         """
 
         # ---------- Premium Research Pipeline ----------
@@ -71,36 +65,74 @@ class ScriptAgent:
                     "Falling back to single-agent generation."
                 )
 
-        # ---------- Single-Agent Fallback ----------
-        logger.info(f"Generating script for topic: '{topic}'")
+        # ---------- Knowledge Base ----------
+        similar_past = self.kb.search_similar(topic, threshold=0.65)
+        past_context = ""
 
+        if similar_past:
+            logger.info(f"KB: {len(similar_past)} similar scripts found")
+
+            titles = "\n".join(
+                f'- "{item["title"]}"' for item in similar_past
+            )
+
+            summaries = "\n".join(
+                f'• {item["script"][:200]}...'
+                for item in similar_past
+            )
+
+            past_context = f"""
+    IMPORTANT — Similar videos already exist.
+
+    Previous titles:
+    {titles}
+
+    Previous summaries:
+    {summaries}
+
+    Create a NEW angle.
+
+    Rules:
+    1. Don't repeat previous points.
+    2. Find a different perspective.
+    3. Mention previous coverage only if useful.
+    """
+        else:
+            logger.info("KB: No similar content found.")
+
+        # ---------- Prompt ----------
         prompt = f"""
-Write a 30-second {style} video script about: {topic}
+    You are a professional video script writer.
 
-Return ONLY valid JSON with these exact fields:
+    Topic: {topic}
+    Style: {style}
 
-{{
-  "title": "video title (max 60 chars)",
-  "subtitle": "subtitle (max 80 chars)",
-  "script": "full narration script (50-80 words)",
-  "points": [
-    "bullet point 1",
-    "bullet point 2",
-    "bullet point 3"
-  ],
-  "channel_name": "AI Business Insights"
-}}
+    {past_context}
 
-No markdown.
-No backticks.
-Only JSON.
-"""
+    Return ONLY valid JSON.
+
+    {{
+    "title": "video title (max 60 chars)",
+    "subtitle": "subtitle (max 80 chars)",
+    "script": "full narration (60-90 words)",
+    "points": [
+        "point 1",
+        "point 2",
+        "point 3"
+    ],
+    "channel_name": "AI Business Insights",
+    "is_fresh_angle": {str(not similar_past).lower()}
+    }}
+
+    No markdown.
+    No backticks.
+    Only JSON.
+    """
 
         try:
             response = self.llm.invoke(prompt)
             raw = response.content.strip()
 
-            # Remove accidental markdown fences
             if raw.startswith("```"):
                 raw = raw.replace("```json", "").replace("```", "").strip()
 
@@ -123,3 +155,59 @@ Only JSON.
         except Exception as e:
             logger.error(f"Script generation failed: {e}")
             raise ScriptGenerationError(str(e)) from e
+            # Step 0: Check knowledge base for similar past content
+            similar_past = self.kb.search_similar(topic, threshold=0.65)
+            past_context = ""
+
+            if similar_past:
+                past_titles = [r["title"] for r in similar_past]
+                past_scripts = [r["script"][:200] for r in similar_past]
+                logger.info(f"KB: {len(similar_past)} similar past scripts found")
+
+                past_context = f"""
+    IMPORTANT — We have already covered similar topics:
+    {chr(10).join([f'- "{t}"' for t in past_titles])}
+
+    Brief summaries of what was covered:
+    {chr(10).join([f'• {s}...' for s in past_scripts])}
+
+    Your new script MUST:
+    1. NOT repeat the same angles or key points from the above
+    2. Find a DIFFERENT perspective, angle, or specific aspect of the topic
+    3. Reference that this builds on previous coverage if relevant
+    """
+            else:
+                logger.info("KB: No similar content — fresh angle, no constraints")
+
+            # Build the generation prompt
+            prompt = f"""You are a professional video script writer.
+
+    Topic: {topic}
+    Style: {style}
+    {past_context}
+
+    Write a 30-second video script. Return ONLY valid JSON:
+    {{
+    "title": "specific title (max 60 chars)",
+    "subtitle": "subtitle (max 80 chars)",
+    "script": "full narration (60-90 words)",
+    "points": ["point 1", "point 2", "point 3"],
+    "channel_name": "AI Business Insights",
+    "is_fresh_angle": {str(len(similar_past) == 0).lower()}
+    }}
+
+    No markdown, no backticks."""
+
+            # ... rest of existing generate() method unchanged ...
+            try:
+                response = self.llm.invoke(prompt)
+                raw = response.content.strip()
+                if "```" in raw:
+                    raw = raw.split("```")[1]
+                    if raw.startswith("json"):
+                        raw = raw[4:]
+                result = json.loads(raw.strip())
+                logger.info(f"Script generated: '{result.get('title')}'")
+                return result
+            except json.JSONDecodeError as e:
+                raise ScriptGenerationError(f"JSON parse failed for '{topic}'") from e

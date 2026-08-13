@@ -13,6 +13,7 @@ from agents.video_agent import VideoAgent
 from agents.upload_agent import UploadAgent 
 from agents.thumbnail_agent import ThumbnailAgent 
 from agents.instagram_agent import InstagramAgent 
+from agents.knowledge_base import ContentKnowledgeBase
 
 
 logger = get_logger("pipeline")
@@ -61,6 +62,11 @@ def run(
             channel_name=script_data["channel_name"]
         )
         results["video_path"] = str(video_path)
+
+        # After step 3 (video render) succeeds:
+        kb = ContentKnowledgeBase()
+        kb.store_script(topic, script_data)
+        logger.info(f"Script saved to knowledge base. Total in KB: {kb.count_total()}")
 
         # Step 4: YouTube upload (optional)
         if upload_to_youtube:
