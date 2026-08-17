@@ -11,79 +11,181 @@ from core.errors import PipelineError
 from agents.script_agent import ScriptAgent
 from agents.voice_agent import VoiceAgent
 from agents.video_agent import VideoAgent 
-from agents.upload_agent import UploadAgent 
+# from agents.upload_agent import UploadAgent 
 from agents.thumbnail_agent import ThumbnailAgent 
 from agents.instagram_agent import InstagramAgent 
 from agents.knowledge_base import ContentKnowledgeBase
-
+from agents.visual_agent import VisualAgent
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+from core.pipeline_config import PipelineConfig
+from agents.pexels_agent import PexelsAgent
 
 logger = get_logger("pipeline")
+# public_dir = Path("video/public")
 
+# for file in public_dir.glob("scene_*.mp4"):
+#     file.unlink(missing_ok=True)
+def _generate_single_clip(agent, prompt, index):
+    clip_path = Path("video/public") / f"scene_{index}.mp4"
 
-def run(
-    topic: str,
-    voice: str = "indman",
-    style: str = "educational",
-    upload_to_youtube: bool = False,
-    post_to_instagram: bool = False
-) -> dict:
+    agent.generate_clip(
+        prompt,
+        str(clip_path)
+    )
+
+    return clip_path.name
+
+def generate_all_clips(
+    visual_agent,
+    prompts,
+):
+    """
+    Generate all clips concurrently.
+    """
+
+    clip_files = [None] * len(prompts)
+
+    with ThreadPoolExecutor(
+        max_workers=min(4, len(prompts))
+    ) as executor:
+
+        futures = {
+            executor.submit(
+                _generate_single_clip,
+                visual_agent,
+                prompt,
+                i,
+            ): i
+            for i, prompt in enumerate(prompts)
+        }
+
+        for future in as_completed(futures):
+
+            index = futures[future]
+
+            clip_files[index] = future.result()
+
+    return clip_files
+
+def run(config: PipelineConfig) -> dict:
     """Run the full multi-platform AI content pipeline."""
 
     results = {
-        "topic": topic,
-        "success": False,
-        "platforms": {}
-    }
+    "topic": config.topic,
+    "success": False,
+    "platforms": {}
+}
 
     try:
         validate_config()
 
         # Step 1: Script
-        script_agent = ScriptAgent()
+        script_agent = ScriptAgent(
+    use_research=config.use_research
+)
+
         script_data = script_agent.generate(
-            topic,
-            style=style
+            config.topic,
+            style=config.style
         )
+        
         results["script"] = script_data
+
+        
+
+
 
         # Step 2: Voice
         voice_agent = VoiceAgent()
         audio_path = voice_agent.generate(
             text=script_data["script"],
-            voice_name=voice
+            voice_name=config.voice,
+            provider=config.voice_provider,
         )
         results["audio_path"] = str(audio_path)
 
+        # Setp : visual Clips
+
+        pexels = PexelsAgent()
+
+        clip_files = []
+
+        for i, point in enumerate(script_data["points"]):
+
+            clip = pexels.download_video(
+                point,
+                f"video/public/scene_{i}.mp4"
+            )
+
+            if clip:
+                clip_files.append(clip)
+
+        # clip_files = []
+
+        # if config.use_ai_visuals:
+
+        #     visual_agent = VisualAgent()
+
+        #     prompts = visual_agent.generate_scene_prompts(
+        #         script_data["points"],
+        #         config.topic
+        #     )
+
+        #     logger.info("Generating AI clips...")
+
+        #     public_dir = Path("video/public")
+
+        #     for file in public_dir.glob("scene_*.mp4"):
+        #         file.unlink(missing_ok=True)
+
+        #     try:
+        #         clip_files = generate_all_clips(
+        #             visual_agent,
+        #             prompts,
+        #         )
+        #     except Exception as e:
+        #         logger.warning(f"AI clip generation failed: {e}")
+        #         clip_files = []
+        
+
         # Step 3: Video
         video_agent = VideoAgent()
+        # video_path = video_agent.render(
+        #     title=script_data["title"],
+        #     subtitle=script_data["subtitle"],
+        #     points=script_data["points"],
+        #     channel_name=script_data["channel_name"]
+        # )
         video_path = video_agent.render(
             title=script_data["title"],
             subtitle=script_data["subtitle"],
             points=script_data["points"],
-            channel_name=script_data["channel_name"]
+            clip_files=clip_files,
+            channel_name=config.channel_name
         )
         results["video_path"] = str(video_path)
 
         # After step 3 (video render) succeeds:
         kb = ContentKnowledgeBase()
-        kb.store_script(topic, script_data)
+        kb.store_script(config.topic, script_data)
         logger.info(f"Script saved to knowledge base. Total in KB: {kb.count_total()}")
 
-        # Step 4: YouTube upload (optional)
-        if upload_to_youtube:
-            logger.info("Uploading to YouTube...")
+        # # Step 4: YouTube upload (optional)
+        # if upload_to_youtube:
+        #     logger.info("Uploading to YouTube...")
 
-            upload_agent = UploadAgent()
-            yt_result = upload_agent.upload(
-                video_path=str(video_path),
-                title=script_data["title"],
-                description=f"AI-generated video about: {topic}"
-            )
+        #     upload_agent = UploadAgent()
+        #     yt_result = upload_agent.upload(
+        #         video_path=str(video_path),
+        #         title=script_data["title"],
+        #         description=f"AI-generated video about: {topic}"
+        #     )
 
-            results["platforms"]["youtube"] = yt_result
-            youtube_url = yt_result.get("url", "")
-        else:
-            youtube_url = ""
+        #     results["platforms"]["youtube"] = yt_result
+        #     youtube_url = yt_result.get("url", "")
+        # else:
+        #     youtube_url = ""
 
         # Step 5: Instagram post (optional)
         # if post_to_instagram:
@@ -137,109 +239,25 @@ def run(
 
         return results
     
-# def run(
-#     topic: str,
-#     voice: str = "indman",
-#     style: str = "educational",
-#     upload_to_youtube: bool = False
-# ) -> dict:
-#     """
-#     Run the full AI video pipeline.
-
-
-#     Args:
-#         topic: The video topic
-#         voice: Voice name (rachel/adam/bella)
-#         style: Script style (educational/conversational/news)
-#         upload_to_youtube: Whether to auto-upload after render
-
-
-#     Returns:
-#         dict with pipeline results
-#     """
-#     start_time = time.time()
-#     logger.info("=" * 50)
-#     logger.info(f"PIPELINE START: '{topic}'")
-#     logger.info("=" * 50)
-
-#     results = {"topic": topic, "success": False}
-
-#     try:
-#         # Validate config first
-#         validate_config()
-
-#         # Step 1: Generate script
-#         logger.info("Step 1/3 — Generating script...")
-#         script_agent = ScriptAgent()
-#         script_data = script_agent.generate(topic, style=style)
-#         results["script"] = script_data
-#         logger.info(f"Script: '{script_data['title']}'")
-
-#         # Step 2: Generate voice
-#         logger.info("Step 2/3 — Generating voice...")
-#         voice_agent = VoiceAgent()
-#         audio_path = voice_agent.generate(
-#             text=script_data["script"],
-#             voice_name=voice
-#         )
-#         results["audio_path"] = str(audio_path)
-
-#         # Step 3: Render video (calls Remotion via subprocess)
-#         logger.info("Step 3/3 — Rendering video (this takes 3-5 min)...")
-#         # VideoAgent import here to avoid loading it if voice fails
-#         from agents.video_agent import VideoAgent
-#         video_agent = VideoAgent()
-#         video_path = video_agent.render(
-#             title=script_data["title"],
-#             subtitle=script_data["subtitle"],
-#             points=script_data["points"],
-#             channel_name=script_data["channel_name"]
-#         )
-#         results["video_path"] = str(video_path)
-
-#         # Optional: Upload to YouTube
-#         if upload_to_youtube:
-#             logger.info("Uploading to YouTube...")
-#             from agents.upload_agent import UploadAgent
-#             upload_agent = UploadAgent()
-#             upload_result = upload_agent.upload(
-#                 video_path=str(video_path),
-#                 title=script_data["title"],
-#                 description=f"AI-generated video about: {topic}"
-#             )
-#             results["youtube"] = upload_result
-
-#         elapsed = round(time.time() - start_time, 1)
-#         results["success"] = True
-#         results["elapsed_seconds"] = elapsed
-
-#         logger.info("=" * 50)
-#         logger.info(f"PIPELINE COMPLETE in {elapsed}s")
-#         logger.info(f"Output: {video_path}")
-#         logger.info("=" * 50)
-
-#         return results
-
-#     except PipelineError as e:
-#         logger.error(f"Pipeline failed: {type(e).__name__}: {e}")
-#         results["error"] = str(e)
-#         results["error_type"] = type(e).__name__
-#         return results
-
-#     except Exception as e:
-#         logger.error(f"Unexpected error: {e}", exc_info=True)
-#         results["error"] = str(e)
-#         return results
-
 
 if __name__ == "__main__":
-    result = run(
-        topic="How AI is transforming content creation in India",
-        voice="rachel",
-        style="educational",
-        upload_to_youtube=False,   # set True when ready
-        post_to_instagram=True     # test Instagram today
-    )
+    cfg = PipelineConfig(
+    topic="Top 5 mutual funds this month for Indian investors",
+    voice="hindi_female",
+    voice_provider="edge",
+    style="educational",
+
+    use_research=False,
+    use_knowledge_base=True,
+    use_ai_visuals=True,
+
+    upload_to_youtube=False,
+    post_to_instagram=True,
+
+    channel_name="AI Business Insights",
+)
+
+    result = run(cfg)
 
     print("\n" + "="*40)
     if result["success"]:

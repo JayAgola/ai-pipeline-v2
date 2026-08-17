@@ -1,174 +1,275 @@
+import React from "react";
 import {
   AbsoluteFill,
+  Audio,
+  interpolate,
+  OffthreadVideo,
+  spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
-  interpolate,
-  spring,
-  Audio,
-  staticFile,
 } from "remotion";
 
 interface Props {
   title: string;
   subtitle: string;
   points: string[];
+  clipFiles: string[];
   channelName: string;
   audioFile?: string;
+
+  durationInFrames: number;
+  titleDuration: number;
+  outroDuration: number;
 }
 
-// Title Card Scene (0 - 90 frames = 3 seconds)
-const TitleCard: React.FC<{title: string; subtitle: string}> = ({title, subtitle}) => {
+const TitleCard: React.FC<{
+  title: string;
+  subtitle: string;
+}> = ({ title, subtitle }) => {
   const frame = useCurrentFrame();
 
-  const titleOpacity = interpolate(frame, [0, 20], [0, 1]);
-  const titleY = interpolate(frame, [0, 20], [30, 0]);
-  const subtitleOpacity = interpolate(frame, [20, 40], [0, 1]);
+  const opacity = interpolate(frame, [0, 20], [0, 1], {
+    extrapolateRight: "clamp",
+  });
+
+  const y = interpolate(frame, [0, 20], [40, 0], {
+    extrapolateRight: "clamp",
+  });
 
   return (
-    <AbsoluteFill style={{
-      background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-      justifyContent: "center",
-      alignItems: "center",
-      flexDirection: "column",
-      padding: "60px",
-    }}>
-      <div style={{
-        fontSize: 72,
-        fontWeight: 800,
-        color: "#ffffff",
-        textAlign: "center",
-        opacity: titleOpacity,
-        transform: `translateY(${titleY}px)`,
-        lineHeight: 1.2,
-        textShadow: "0 4px 20px rgba(0,0,0,0.5)",
-      }}>
+    <AbsoluteFill
+      style={{
+        background:
+          "linear-gradient(135deg,#0f0c29,#302b63,#24243e)",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        padding: 80,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 72,
+          fontWeight: 800,
+          color: "white",
+          opacity,
+          transform: `translateY(${y}px)`,
+          textAlign: "center",
+        }}
+      >
         {title}
       </div>
-      <div style={{
-        fontSize: 36,
-        color: "#a78bfa",
-        marginTop: 24,
-        opacity: subtitleOpacity,
-        textAlign: "center",
-      }}>
+
+      <div
+        style={{
+          marginTop: 30,
+          fontSize: 34,
+          color: "#b794f4",
+          opacity: interpolate(frame, [15, 35], [0, 1], {
+            extrapolateRight: "clamp",
+          }),
+        }}
+      >
         {subtitle}
       </div>
     </AbsoluteFill>
   );
 };
 
-// Content Scene — shows bullet points one by one
-const ContentScene: React.FC<{points: string[]}> = ({points}) => {
+const ContentScene: React.FC<{
+  point: string;
+  clipFile?: string;
+}> = ({ point, clipFile }) => {
   const frame = useCurrentFrame();
 
   return (
-    <AbsoluteFill style={{
-      background: "#0f0f1a",
-      padding: "80px",
-      justifyContent: "center",
-      flexDirection: "column",
-    }}>
-      {points.map((point, i) => {
-        const startFrame = i * 40;
-        const opacity = interpolate(frame, [startFrame, startFrame + 20], [0, 1], {
-          extrapolateRight: "clamp",
-        });
-        const x = interpolate(frame, [startFrame, startFrame + 20], [-40, 0], {
-          extrapolateRight: "clamp",
-        });
+    <AbsoluteFill>
+      {clipFile ? (
+        <OffthreadVideo
+          src={staticFile(clipFile)}
+          muted
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <AbsoluteFill
+          style={{
+            background: "#222",
+          }}
+        />
+      )}
 
-        return (
-          <div key={i} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 24,
-            marginBottom: 40,
-            opacity,
-            transform: `translateX(${x}px)`,
-          }}>
-            <div style={{
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              background: "#a78bfa",
-              flexShrink: 0,
-            }}/>
-            <div style={{
-              fontSize: 36 ,
-              color: "#ffffff",
-              lineHeight: 1.4,
-            }}>
-              {point}
-            </div>
-          </div>
-        );
-      })}
+      <AbsoluteFill
+        style={{
+          justifyContent: "flex-end",
+          padding: 60,
+          background:
+            "linear-gradient(transparent,rgba(0,0,0,0.7))",
+        }}
+      >
+        <div
+          style={{
+            color: "white",
+            fontSize: 42,
+            fontWeight: 600,
+            opacity: interpolate(frame, [0, 15], [0, 1], {
+              extrapolateRight: "clamp",
+            }),
+            transform: `translateY(${interpolate(
+              frame,
+              [0, 15],
+              [20, 0],
+              {
+                extrapolateRight: "clamp",
+              }
+            )}px)`,
+          }}
+        >
+          {point}
+        </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
-// Outro Scene
-const OutroScene: React.FC<{channelName: string}> = ({channelName}) => {
+const OutroScene: React.FC<{
+  channelName: string;
+}> = ({ channelName }) => {
   const frame = useCurrentFrame();
-  const scale = spring({frame, fps: 30, config: {damping: 12}});
+  const { fps } = useVideoConfig();
+
+  const scale = spring({
+    frame,
+    fps,
+    config: {
+      damping: 10,
+    },
+  });
 
   return (
-    <AbsoluteFill style={{
-      background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-      justifyContent: "center",
-      alignItems: "center",
-      flexDirection: "column",
-    }}>
-      <div style={{
-        fontSize: 56,
-        fontWeight: 700,
-        color: "#ffffff",
-        transform: `scale(${scale})`,
-        textAlign: "center",
-      }}>
-        Like & Subscribe
+    <AbsoluteFill
+      style={{
+        background:
+          "linear-gradient(135deg,#0f0c29,#302b63,#24243e)",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          color: "white",
+          fontSize: 56,
+          fontWeight: 700,
+          transform: `scale(${scale})`,
+        }}
+      >
+        Like • Share • Subscribe
       </div>
-      <div style={{
-        fontSize: 36,
-        color: "#a78bfa",
-        marginTop: 20,
-        opacity: interpolate(frame, [10, 30], [0, 1]),
-      }}>
+
+      <div
+        style={{
+          marginTop: 30,
+          color: "#b794f4",
+          fontSize: 34,
+          opacity: interpolate(frame, [10, 30], [0, 1], {
+            extrapolateRight: "clamp",
+          }),
+        }}
+      >
         {channelName}
       </div>
     </AbsoluteFill>
   );
 };
 
-// MAIN COMPOSITION — ties all scenes together
 export const AIVideoTemplate: React.FC<Props> = ({
   title,
   subtitle,
   points,
+  clipFiles,
   channelName,
   audioFile,
+  durationInFrames,
+  titleDuration,
+  outroDuration,
 }) => {
-  const {fps} = useVideoConfig();
+  if (points.length === 0) {
+    return (
+      <AbsoluteFill
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          background: "black",
+          color: "white",
+          fontSize: 50,
+        }}
+      >
+        No content
+      </AbsoluteFill>
+    );
+  }
+
   const frame = useCurrentFrame();
 
-  const titleDuration = 180;   // 3 seconds
-  const contentDuration = points.length * 40 + 60;  // ~4-6 seconds
-  const outroDuration = 60;   // 2 seconds
+  const contentDuration =
+    durationInFrames -
+    titleDuration -
+    outroDuration;
+
+  const contentFrame = Math.max(
+    frame - titleDuration,
+    0
+  );
+
+  const pointDuration = Math.max(
+    Math.floor(contentDuration / points.length),
+    1
+  );
+
+  const pointIndex = Math.min(
+    Math.floor(contentFrame / pointDuration),
+    points.length - 1
+  );
 
   const showTitle = frame < titleDuration;
-  const showContent = frame >= titleDuration && frame < titleDuration + contentDuration;
-  const showOutro = frame >= titleDuration + contentDuration;
+
+  const showContent =
+    frame >= titleDuration &&
+    frame < titleDuration + contentDuration;
+
+  const showOutro =
+    frame >= titleDuration + contentDuration;
 
   return (
     <AbsoluteFill>
-      {audioFile && <Audio src={staticFile(audioFile)} />}
-      {showTitle && <TitleCard title={title} subtitle={subtitle} />}
-      {showContent && (
-        <ContentScene
-          points={points}
+      {audioFile && (
+        <Audio src={staticFile(audioFile)} />
+      )}
+
+      {showTitle && (
+        <TitleCard
+          title={title}
+          subtitle={subtitle}
         />
       )}
-      {showOutro && <OutroScene channelName={channelName} />}
+
+      {showContent && (
+        <ContentScene
+          point={points[pointIndex]}
+          clipFile={clipFiles[pointIndex]}
+        />
+      )}
+
+      {showOutro && (
+        <OutroScene
+          channelName={channelName}
+        />
+      )}
     </AbsoluteFill>
   );
 };

@@ -5,13 +5,17 @@ Uses LangGraph for orchestration, Groq for LLM, DuckDuckGo for research.
 All free.
 """
 import os
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 import json
 from typing import TypedDict, Annotated
 import operator
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from core.logger import get_logger
 from core.errors import ScriptGenerationError
 from core.config import GROQ_API_KEY
@@ -180,7 +184,7 @@ def quality_check(state: PipelineState) -> str:
         logger.warning("Quality check: script too short")
         return "retry"  # too short — retry script agent
 
-    logger.info("Quality check: script passed ✓")
+    logger.info("Quality check: script passed [OK]")
     return "done"
 
 # ── Build the Graph ────────────────────────────────────────────

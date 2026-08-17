@@ -1,86 +1,167 @@
 import json
+import shutil
 import subprocess
 from pathlib import Path
-from core.config import VIDEO_DIR, OUTPUT_VIDEO, VIDEO_FPS, VIDEO_WIDTH, VIDEO_HEIGHT,VOICE_FILE
-from core.logger import get_logger
-from core.errors import VideoRenderError
-from core.errors import retry
-import shutil
+
 from mutagen.mp3 import MP3
+
+from core.config import (
+    VIDEO_DIR,
+    OUTPUT_VIDEO,
+    VIDEO_FPS,
+    VIDEO_WIDTH,
+    VIDEO_HEIGHT,
+    VOICE_FILE,
+)
+from core.errors import VideoRenderError, retry
+from core.logger import get_logger
 
 logger = get_logger("video_agent")
 
+
 class VideoAgent:
-    """Renders animated videos using Remotion."""
-    def get_audio_duration_frames(mp3_path: str, fps: int = 30) -> int:
-        audio = MP3(mp3_path)
-        return int(audio.info.length * fps)
+    """Render videos using Remotion."""
+
+    TITLE_DURATION = 90
+    OUTRO_DURATION = 60
+
+    @staticmethod
+    def get_audio_duration_frames(mp3_path: Path, fps: int = 30) -> int:
+        """
+        Returns audio duration in frames.
+        """
+
+        if not mp3_path.exists():
+            raise VideoRenderError(
+                f"Voice file not found: {mp3_path}"
+            )
+
+        audio = MP3(str(mp3_path))
+
+        if audio.info.length <= 0:
+            raise VideoRenderError(
+                "Invalid audio duration."
+            )
+
+        return max(int(audio.info.length * fps), 1)
+
+    @staticmethod
+    def validate_clip_files(clips: list[str]):
+        """
+        Ensure every clip exists.
+        """
+
+        for clip in clips:
+            clip_path = VIDEO_DIR / "public" / clip
+
+            if not clip_path.exists():
+                raise VideoRenderError(
+                    f"Missing clip: {clip_path}"
+                )
 
     @retry(max_attempts=3, delay=2.0, exceptions=(Exception,))
     def render(
         self,
         title: str,
         subtitle: str,
-        points: list,
-        channel_name: str = "AI Business Insights",
-        audio_file: str = "voice.mp3"
+        points: list[str],
+        clip_files: list[str],
+        channel_name: str,
+        audio_file: str = "voice.mp3",
     ) -> Path:
-        """Render a video and return the output path."""
-        # duration = 90 + (len(points) * 40 + 60) + 60
-        duration = VideoAgent.get_audio_duration_frames(str(VOICE_FILE))
+
+        self.validate_clip_files(clip_files)
+
+        duration = self.get_audio_duration_frames(
+            VOICE_FILE,
+            VIDEO_FPS,
+        )
+
+        if duration <= (
+            self.TITLE_DURATION + self.OUTRO_DURATION
+        ):
+            raise VideoRenderError(
+                "Audio is too short."
+            )
+
         props = {
             "title": title,
             "subtitle": subtitle,
             "points": points,
+            "clipFiles": clip_files,
             "channelName": channel_name,
-            "audioFile": audio_file
+            "audioFile": audio_file,
+            "durationInFrames": duration,
+            "titleDuration": self.TITLE_DURATION,
+            "outroDuration": self.OUTRO_DURATION,
         }
 
-        # cmd = [
-        #     "npx", "remotion", "render",
-        #     "AIVideoTemplate",
-        #     str(OUTPUT_VIDEO.resolve()),
-        #     "--props", json.dumps(props),
-        #     "--duration-in-frames", str(duration),
-        #     "--fps", str(VIDEO_FPS),
-        #     "--width", str(VIDEO_WIDTH),
-        #     "--height", str(VIDEO_HEIGHT),
-        # ]
-        npx = shutil.which("npx.cmd")
-        cmd = [
+        npx = shutil.which("npx")
+
+        if npx is None:
+            npx = shutil.which("npx.cmd")
+
+        if npx is None:
+            raise VideoRenderError(
+                "Unable to locate npx."
+            )
+
+        output_path = OUTPUT_VIDEO.resolve()
+
+        command = [
             npx,
             "remotion",
             "render",
             "src/index.ts",
             "AIVideoTemplate",
-            str(OUTPUT_VIDEO.resolve()),
-            "--props", json.dumps(props),
-            "--duration-in-frames", str(duration),
-            "--fps", str(VIDEO_FPS),
-            "--width", str(VIDEO_WIDTH),
-            "--height", str(VIDEO_HEIGHT),
+            str(output_path),
+            "--props",
+            json.dumps(props),
+            "--duration-in-frames",
+            str(duration),
+            "--fps",
+            str(VIDEO_FPS),
+            "--width",
+            str(VIDEO_WIDTH),
+            "--height",
+            str(VIDEO_HEIGHT),
         ]
 
-
-        logger.info(f"Rendering: '{title}' ({duration} frames)")
+        logger.info(
+            f"Rendering video ({duration} frames)..."
+        )
 
         try:
             result = subprocess.run(
-                cmd,
-                cwd=str(VIDEO_DIR.resolve()),
+                command,
+                cwd=VIDEO_DIR,
                 capture_output=True,
                 text=True,
-                timeout=600
+                timeout=900,
             )
-            if result.returncode != 0:
-                raise VideoRenderError(result.stderr[-500:])
-
-            logger.info(f"Render complete: {OUTPUT_VIDEO}")
-            return OUTPUT_VIDEO
 
         except subprocess.TimeoutExpired:
-            raise VideoRenderError("Render timed out after 10 minutes")
-        except VideoRenderError:
-            raise
+            raise VideoRenderError(
+                "Rendering timed out."
+            )
+
         except Exception as e:
-            raise VideoRenderError(str(e)) from e
+            raise VideoRenderError(str(e))
+
+        if result.returncode != 0:
+            logger.error(result.stderr)
+
+            raise VideoRenderError(
+                f"Remotion failed.\n\n{result.stderr}"
+            )
+
+        if not output_path.exists():
+            raise VideoRenderError(
+                "Render finished but output file was not created."
+            )
+
+        logger.info(
+            f"Video created successfully: {output_path}"
+        )
+
+        return output_path

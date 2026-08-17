@@ -1,10 +1,13 @@
 from pathlib import Path
 from elevenlabs.client import ElevenLabs
 from elevenlabs import save,VoiceSettings
-from core.config import ELEVENLABS_API_KEY, VOICE_IDS, DEFAULT_VOICE, VOICE_FILE
+from core.config import ELEVENLABS_API_KEY, VOICE_IDS, DEFAULT_VOICE, VOICE_FILE,EDGE_VOICES
 from core.logger import get_logger
 from core.errors import VoiceGenerationError,QuotaExceededError,ConfigError
 from core.errors import retry
+import asyncio
+import edge_tts
+from pydub import AudioSegment
 
 logger = get_logger("voice_agent")
 
@@ -17,14 +20,56 @@ class VoiceAgent:
         self.client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
         logger.info("VoiceAgent initialised")
 
+    def _clean_audio(
+        self,
+        raw_path: Path,
+        final_path: Path,
+    ):
+
+        audio = AudioSegment.from_file(raw_path)
+
+        audio = audio.normalize()
+
+        audio = audio.fade_in(150)
+
+        audio = audio.fade_out(300)
+
+        audio.export(
+            final_path,
+            format="mp3",
+            bitrate="192k",
+        )
+
+        return final_path
+
+
+    async def _generate_edge(
+        self,
+        text: str,
+        voice: str,
+        output_path: Path,
+        rate="+5%",
+        pitch="+0Hz",
+    ):
+
+        communicate = edge_tts.Communicate(
+            text=text,
+            voice=voice,
+            rate=rate,
+            pitch=pitch,
+        )
+
+        await communicate.save(str(output_path))
+
     @retry(max_attempts=3, delay=2.0, exceptions=(Exception,))
     def generate(
         self,
         text: str,
         voice_name: str = DEFAULT_VOICE,
+        provider: str = "edge",
         stability: float = 0.5,
         similarity_boost: float = 0.75,
-        output_path: Path = VOICE_FILE
+        output_path: Path = VOICE_FILE,
     ) -> Path:
         """
         Generate voice audio from text.
@@ -32,6 +77,49 @@ class VoiceAgent:
         Returns:
             Path to the saved MP3 file
         """
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        if provider.lower() == "edge":
+
+            voice = EDGE_VOICES.get(voice_name)
+
+            if not voice:
+
+                raise VoiceGenerationError(
+                    f"Unknown Edge voice: {voice_name}"
+                )
+
+            raw_path = output_path.with_name(
+                output_path.stem + "_raw.mp3"
+            )
+
+            logger.info(
+                f"Generating Edge TTS voice: {voice_name}"
+            )
+
+            asyncio.run(
+                self._generate_edge(
+                    text=text,
+                    voice=voice,
+                    output_path=raw_path,
+                )
+            )
+
+            self._clean_audio(
+                raw_path,
+                output_path,
+            )
+
+            if raw_path.exists():
+                raw_path.unlink()
+
+            logger.info(
+                f"Edge voice saved: {output_path}"
+            )
+
+            return output_path
         voice_id = VOICE_IDS.get(voice_name)
         if not voice_id:
             raise VoiceGenerationError(
@@ -63,9 +151,18 @@ class VoiceAgent:
             return output_path
 
         except Exception as e:
-            logger.error(f"Voice generation failed: {e}")
+            logger.error(e)
+
             if "quota" in str(e).lower():
-                raise QuotaExceededError(
-                    "ElevenLabs quota exceeded. Wait for monthly reset."
-                ) from e
+
+                logger.warning(
+                    "Quota exceeded. Falling back to Edge-TTS."
+                )
+
+                return self.generate(
+                    text=text,
+                    voice_name="indian_male",
+                    provider="edge",
+                    output_path=output_path,
+                )
             raise VoiceGenerationError(str(e)) from e

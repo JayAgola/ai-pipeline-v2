@@ -1,32 +1,22 @@
 import "./index.css";
-import { Composition } from "remotion";
-import { HelloWorld, myCompSchema } from "./HelloWorld";
-import { Logo, myCompSchema2 } from "./HelloWorld/Logo";
+import React from "react";
+import {Composition} from "remotion";
+
+import {HelloWorld, myCompSchema} from "./HelloWorld";
+import {Logo, myCompSchema2} from "./HelloWorld/Logo";
 import {AIVideoTemplate} from "./AIVideoTemplate";
 
-// Each <Composition> is an entry in the sidebar!
-
 export const RemotionRoot: React.FC = () => {
-  const points = [
-    "AI saves 10+ hours per week",
-    "Automate content creation end-to-end",
-    "Zero cost with free API tiers",
-  ];
-
-  const totalFrames = 90 + (points.length * 40 + 60) + 60; // title + content + outro
   return (
     <>
-      <Composition
-        // You can take the "id" to render a video:
-        // npx remotion render HelloWorld
+      {/* Demo composition */}
+      {/* <Composition
         id="HelloWorld"
         component={HelloWorld}
         durationInFrames={150}
         fps={30}
         width={1920}
         height={1080}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
         schema={myCompSchema}
         defaultProps={{
           titleText: "Welcome to Remotion",
@@ -34,10 +24,10 @@ export const RemotionRoot: React.FC = () => {
           logoColor1: "#91EAE4",
           logoColor2: "#86A8E7",
         }}
-      />
+      /> */}
 
-      {/* Mount any React component to make it show up in the sidebar and work on it individually! */}
-      <Composition
+      {/* Logo demo */}
+      {/* <Composition
         id="OnlyLogo"
         component={Logo}
         durationInFrames={150}
@@ -46,27 +36,56 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
         schema={myCompSchema2}
         defaultProps={{
-          logoColor1: "#91dAE2" as const,
+          logoColor1: "#91EAE4" as const,
           logoColor2: "#86A8E7" as const,
         }}
-      />
+      /> */}
+
+      {/* Main AI Video Template */}
       <Composition
         id="AIVideoTemplate"
         component={AIVideoTemplate}
-        durationInFrames={390}  // will be overridden by CLI props
         fps={30}
         width={1920}
         height={1080}
+
+        /*
+          This value is only used while previewing in
+          Remotion Studio.
+
+          The Python pipeline overrides it using:
+
+          --duration-in-frames
+        */
+        durationInFrames={300}
+
         defaultProps={{
           title: "AI Automation in 2025",
-          subtitle: "What every business needs to know",
+
+          subtitle:
+            "What every business needs to know",
+
           points: [
-            "AI saves 10+ hours per week",
+            "AI saves 10+ hours every week",
             "Automate content creation",
-            "Zero cost with free APIs",
+            "Use free AI APIs",
           ],
+
+          clipFiles: [
+            "scene_0.mp4",
+            "scene_1.mp4",
+            "scene_2.mp4",
+          ],
+
           channelName: "AI Business Insights",
-          audioFile: "voice.mp3",  // always this filename
+
+          audioFile: "voice.mp3",
+
+          durationInFrames: 300,
+
+          titleDuration: 90,
+
+          outroDuration: 60,
         }}
       />
     </>

@@ -10,15 +10,15 @@ from pathlib import Path
 from sentence_transformers import SentenceTransformer
 from supabase import create_client
 from core.logger import get_logger
-
+from core.config import SUPABASE_URL_PGVECTOR,SUPABASE_KEY_PGVECTOR
 logger = get_logger("knowledge_base")
 
 # Free local embeddings — no API cost
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 supabase = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_KEY")
+    SUPABASE_URL_PGVECTOR,
+    SUPABASE_KEY_PGVECTOR
 )
 
 class ContentKnowledgeBase:
@@ -83,7 +83,7 @@ class ContentKnowledgeBase:
                 "channel_name": script_data.get("channel_name", "")
             }).execute()
 
-            logger.info("Script stored in KB ✓")
+            logger.info("Script stored in KB [OK]")
             return True
 
         except Exception as e:

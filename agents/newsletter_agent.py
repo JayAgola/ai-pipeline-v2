@@ -4,6 +4,10 @@ Fetches trending topics from RSS feeds, summarises with AI,
 writes a newsletter, and sends via Mailchimp.
 """
 import os
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 import feedparser
 import mailchimp_marketing as MailchimpMarketing
 from mailchimp_marketing.api_client import ApiClientError
