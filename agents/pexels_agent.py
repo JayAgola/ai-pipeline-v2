@@ -3,6 +3,11 @@ from pathlib import Path
 
 from core.config import PEXELS_API_KEY
 from core.logger import get_logger
+import io
+import sys
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 logger = get_logger("pexels")
 
@@ -25,7 +30,7 @@ class PexelsAgent:
                 "query": query,
                 "per_page": 1
             },
-            timeout=30
+            timeout=120
         )
 
         response.raise_for_status()

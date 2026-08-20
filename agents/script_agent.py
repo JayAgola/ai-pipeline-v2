@@ -20,7 +20,7 @@ class ScriptAgent:
 
     def __init__(
         self,
-        model: str = "llama-3.1-8b-instant",
+        model: str = "openai/gpt-oss-20b",
         use_research: bool = False,
     ):
         if not GROQ_API_KEY:
@@ -39,11 +39,11 @@ class ScriptAgent:
         )
 
     @retry(max_attempts=3, delay=2.0, exceptions=(Exception,))
-    def generate(self, topic: str, style: str = "educational") -> dict:
+    def generate(self, topic: str, style: str = "educational" ,duration_seconds: int = 180,) -> dict:
         """
         Generate a structured video script.
         """
-
+        target_words = int(duration_seconds * 2.5)
         # ---------- Premium Research Pipeline ----------
         if self.use_research:
             logger.info("Using multi-agent research pipeline...")
@@ -102,32 +102,26 @@ class ScriptAgent:
 
         # ---------- Prompt ----------
         prompt = f"""
-    You are a professional video script writer.
+You are a professional YouTube script writer.
 
-    Topic: {topic}
-    Style: {style}
+Topic: {topic}
 
-    {past_context}
+Target duration: {duration_seconds} seconds.
 
-    Return ONLY valid JSON.
+Write approximately {target_words} words.
 
-    {{
-    "title": "video title (max 60 chars)",
-    "subtitle": "subtitle (max 80 chars)",
-    "script": "full narration (60-90 words)",
-    "points": [
-        "point 1",
-        "point 2",
-        "point 3"
-    ],
-    "channel_name": "AI Business Insights",
-    "is_fresh_angle": {str(not similar_past).lower()}
-    }}
+Return ONLY JSON.
 
-    No markdown.
-    No backticks.
-    Only JSON.
-    """
+{{
+"title":"...",
+"subtitle":"...",
+"script":"...",
+"points":[
+...
+],
+"channel_name":"AI Business Insights"
+}}
+"""
 
         try:
             response = self.llm.invoke(prompt)

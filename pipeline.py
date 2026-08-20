@@ -20,7 +20,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from core.pipeline_config import PipelineConfig
 from agents.pexels_agent import PexelsAgent
+import sys
+import io
 
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 logger = get_logger("pipeline")
 # public_dir = Path("video/public")
 
@@ -87,7 +91,8 @@ def run(config: PipelineConfig) -> dict:
 
         script_data = script_agent.generate(
             config.topic,
-            style=config.style
+            style=config.style,
+            duration_seconds=config.video_duration_seconds
         )
         
         results["script"] = script_data
@@ -243,6 +248,7 @@ def run(config: PipelineConfig) -> dict:
 if __name__ == "__main__":
     cfg = PipelineConfig(
     topic="Top 5 mutual funds this month for Indian investors",
+    video_duration_seconds=30,
     voice="hindi_female",
     voice_provider="edge",
     style="educational",

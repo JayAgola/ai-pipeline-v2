@@ -11,13 +11,14 @@ import {
 } from "remotion";
 
 interface Props {
+  width?: number;
+  height?: number;
   title: string;
   subtitle: string;
   points: string[];
   clipFiles: string[];
   channelName: string;
   audioFile?: string;
-
   durationInFrames: number;
   titleDuration: number;
   outroDuration: number;

@@ -25,7 +25,7 @@ logger = get_logger("blog_agent")
 
 llm = ChatGroq(
     api_key=GROQ_API_KEY,
-    model="llama-3.1-8b-instant",
+    model="openai/gpt-oss-20b",
     model_kwargs={"response_format": {"type": "json_object"}}
 )
 

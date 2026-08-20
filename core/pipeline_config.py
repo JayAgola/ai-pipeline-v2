@@ -17,6 +17,7 @@ class PipelineConfig:
 
     # Script
     style: str = "educational"
+    video_duration_seconds: int = 30
 
     # Voice
     voice: str = "indian_male"

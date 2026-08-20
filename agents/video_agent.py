@@ -37,6 +37,7 @@ class VideoAgent:
             )
 
         audio = MP3(str(mp3_path))
+        print("Audio seconds:", audio.info.length)
 
         if audio.info.length <= 0:
             raise VideoRenderError(
@@ -77,6 +78,10 @@ class VideoAgent:
             VIDEO_FPS,
         )
 
+        audio = MP3(str(VOICE_FILE))
+
+        print("Audio seconds:", audio.info.length)
+        print("Frames:", duration)
         if duration <= (
             self.TITLE_DURATION + self.OUTRO_DURATION
         ):
@@ -94,6 +99,8 @@ class VideoAgent:
             "durationInFrames": duration,
             "titleDuration": self.TITLE_DURATION,
             "outroDuration": self.OUTRO_DURATION,
+            "width": VIDEO_WIDTH,
+            "height": VIDEO_HEIGHT,
         }
 
         npx = shutil.which("npx")

@@ -48,43 +48,29 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1920}
         height={1080}
-
-        /*
-          This value is only used while previewing in
-          Remotion Studio.
-
-          The Python pipeline overrides it using:
-
-          --duration-in-frames
-        */
-        durationInFrames={300}
-
+        durationInFrames={900}
+        calculateMetadata={async ({ props }) => {
+          return {
+            width: props.width ?? 1920,
+            height: props.height ?? 1080,
+            durationInFrames: props.durationInFrames ?? 900,
+          };
+        }}
         defaultProps={{
+          width: 1920,
+          height: 1080,
           title: "AI Automation in 2025",
-
-          subtitle:
-            "What every business needs to know",
-
+          subtitle: "What every business needs to know",
           points: [
             "AI saves 10+ hours every week",
             "Automate content creation",
             "Use free AI APIs",
           ],
-
-          clipFiles: [
-            "scene_0.mp4",
-            "scene_1.mp4",
-            "scene_2.mp4",
-          ],
-
+          clipFiles: ["scene_0.mp4", "scene_1.mp4", "scene_2.mp4"],
           channelName: "AI Business Insights",
-
           audioFile: "voice.mp3",
-
           durationInFrames: 300,
-
           titleDuration: 90,
-
           outroDuration: 60,
         }}
       />
