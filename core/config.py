@@ -54,8 +54,8 @@ EDGE_VOICES = {
     "hindi_female": "hi-IN-SwaraNeural",
 }
 
-DEFAULT_EDGE_VOICE = "hindi_female"
-DEFAULT_VOICE = "hindi_female"
+DEFAULT_EDGE_VOICE = "indian_male"
+DEFAULT_VOICE = "indian_male"
 
 # ---------------------------------------------------------------------
 # API Keys

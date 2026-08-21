@@ -249,7 +249,7 @@ if __name__ == "__main__":
     cfg = PipelineConfig(
     topic="Top 5 mutual funds this month for Indian investors",
     video_duration_seconds=30,
-    voice="hindi_female",
+    voice="indian_male",
     voice_provider="edge",
     style="educational",
 
