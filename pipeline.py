@@ -247,7 +247,7 @@ def run(config: PipelineConfig) -> dict:
 
 if __name__ == "__main__":
     cfg = PipelineConfig(
-    topic="Top 5 mutual funds this month for Indian investors",
+    topic="Top 3 AI tools for Indian businesses 2025",
     video_duration_seconds=30,
     voice="indian_male",
     voice_provider="edge",
