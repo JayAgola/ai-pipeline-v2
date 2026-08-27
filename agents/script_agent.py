@@ -20,7 +20,7 @@ class ScriptAgent:
 
     def __init__(
         self,
-        model: str = "openai/gpt-oss-20b",
+        model: str = "llama-3.3-70b-versatile",
         use_research: bool = False,
     ):
         if not GROQ_API_KEY:
