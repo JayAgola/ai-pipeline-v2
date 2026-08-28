@@ -149,59 +149,59 @@ Return ONLY JSON.
         except Exception as e:
             logger.error(f"Script generation failed: {e}")
             raise ScriptGenerationError(str(e)) from e
-            # Step 0: Check knowledge base for similar past content
-            similar_past = self.kb.search_similar(topic, threshold=0.65)
-            past_context = ""
+        # Step 0: Check knowledge base for similar past content
+        similar_past = self.kb.search_similar(topic, threshold=0.65)
+        past_context = ""
 
-            if similar_past:
-                past_titles = [r["title"] for r in similar_past]
-                past_scripts = [r["script"][:200] for r in similar_past]
-                logger.info(f"KB: {len(similar_past)} similar past scripts found")
+        if similar_past:
+            past_titles = [r["title"] for r in similar_past]
+            past_scripts = [r["script"][:200] for r in similar_past]
+            logger.info(f"KB: {len(similar_past)} similar past scripts found")
 
-                past_context = f"""
-    IMPORTANT — We have already covered similar topics:
-    {chr(10).join([f'- "{t}"' for t in past_titles])}
+            past_context = f"""
+IMPORTANT — We have already covered similar topics:
+{chr(10).join([f'- "{t}"' for t in past_titles])}
 
-    Brief summaries of what was covered:
-    {chr(10).join([f'• {s}...' for s in past_scripts])}
+Brief summaries of what was covered:
+{chr(10).join([f'• {s}...' for s in past_scripts])}
 
-    Your new script MUST:
-    1. NOT repeat the same angles or key points from the above
-    2. Find a DIFFERENT perspective, angle, or specific aspect of the topic
-    3. Reference that this builds on previous coverage if relevant
-    """
-            else:
-                logger.info("KB: No similar content — fresh angle, no constraints")
+Your new script MUST:
+1. NOT repeat the same angles or key points from the above
+2. Find a DIFFERENT perspective, angle, or specific aspect of the topic
+3. Reference that this builds on previous coverage if relevant
+"""
+        else:
+            logger.info("KB: No similar content — fresh angle, no constraints")
 
-            # Build the generation prompt
-            prompt = f"""You are a professional video script writer.
+        # Build the generation prompt
+        prompt = f"""You are a professional video script writer.
 
-    Topic: {topic}
-    Style: {style}
-    {past_context}
+Topic: {topic}
+Style: {style}
+{past_context}
 
-    Write a 30-second video script. Return ONLY valid JSON:
-    {{
-    "title": "specific title (max 60 chars)",
-    "subtitle": "subtitle (max 80 chars)",
-    "script": "full narration (60-90 words)",
-    "points": ["point 1", "point 2", "point 3"],
-    "channel_name": "AI Business Insights",
-    "is_fresh_angle": {str(len(similar_past) == 0).lower()}
-    }}
+Write a 30-second video script. Return ONLY valid JSON:
+{{
+"title": "specific title (max 60 chars)",
+"subtitle": "subtitle (max 80 chars)",
+"script": "full narration (60-90 words)",
+"points": ["point 1", "point 2", "point 3"],
+"channel_name": "AI Business Insights",
+"is_fresh_angle": {str(len(similar_past) == 0).lower()}
+}}
 
-    No markdown, no backticks."""
+No markdown, no backticks."""
 
-            # ... rest of existing generate() method unchanged ...
-            try:
-                response = self.llm.invoke(prompt)
-                raw = response.content.strip()
-                if "```" in raw:
-                    raw = raw.split("```")[1]
-                    if raw.startswith("json"):
-                        raw = raw[4:]
-                result = json.loads(raw.strip())
-                logger.info(f"Script generated: '{result.get('title')}'")
-                return result
-            except json.JSONDecodeError as e:
-                raise ScriptGenerationError(f"JSON parse failed for '{topic}'") from e
+        # ... rest of existing generate() method unchanged ...
+        try:
+            response = self.llm.invoke(prompt)
+            raw = response.content.strip()
+            if "```" in raw:
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            result = json.loads(raw.strip())
+            logger.info(f"Script generated: '{result.get('title')}'")
+            return result
+        except json.JSONDecodeError as e:
+            raise ScriptGenerationError(f"JSON parse failed for '{topic}'") from e
