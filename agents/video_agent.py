@@ -2,7 +2,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-
+import tempfile
 from mutagen.mp3 import MP3
 
 from core.config import (
@@ -115,6 +115,15 @@ class VideoAgent:
 
         output_path = OUTPUT_VIDEO.resolve()
 
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".json",
+            delete=False,
+            encoding="utf-8",
+        ) as f:
+            json.dump(props, f, ensure_ascii=False)
+            props_path = f.name
+
         command = [
             npx,
             "remotion",
@@ -123,7 +132,7 @@ class VideoAgent:
             "AIVideoTemplate",
             str(output_path),
             "--props",
-            json.dumps(props),
+            props_path,
             "--duration-in-frames",
             str(duration),
             "--fps",

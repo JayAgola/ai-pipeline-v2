@@ -44,6 +44,7 @@ class ScriptAgent:
         Generate a structured video script.
         """
         target_words = int(duration_seconds * 2.5)
+        scene_count = max(3, duration_seconds // 10)
         # ---------- Premium Research Pipeline ----------
         if self.use_research:
             logger.info("Using multi-agent research pipeline...")
@@ -82,46 +83,72 @@ class ScriptAgent:
             )
 
             past_context = f"""
-    IMPORTANT — Similar videos already exist.
+                IMPORTANT — Similar videos already exist.
 
-    Previous titles:
-    {titles}
+                Previous titles:
+                {titles}
 
-    Previous summaries:
-    {summaries}
+                Previous summaries:
+                {summaries}
 
-    Create a NEW angle.
+                Create a NEW angle.
 
-    Rules:
-    1. Don't repeat previous points.
-    2. Find a different perspective.
-    3. Mention previous coverage only if useful.
-    """
+                Rules:
+                1. Don't repeat previous points.
+                2. Find a different perspective.
+                3. Mention previous coverage only if useful.
+                """
         else:
             logger.info("KB: No similar content found.")
 
         # ---------- Prompt ----------
         prompt = f"""
-You are a professional YouTube script writer.
+            You are a professional YouTube script writer.
 
-Topic: {topic}
+            Topic:
+            {topic}
 
-Target duration: {duration_seconds} seconds.
+            Style:
+            {style}
 
-Write approximately {target_words} words.
+            Target duration:
+            {duration_seconds} seconds
 
-Return ONLY JSON.
+            Target words:
+            {target_words}
 
-{{
-"title":"...",
-"subtitle":"...",
-"script":"...",
-"points":[
-...
-],
-"channel_name":"AI Business Insights"
-}}
-"""
+            Create exactly {scene_count} points.
+
+            Each point should represent one scene.
+
+            Return ONLY valid JSON.
+
+            Schema:
+
+            {{
+                "title": string,
+                "subtitle": string,
+                "script": string,
+                "points": [
+                    string
+                ],
+                "channel_name": string
+            }}
+
+            Rules:
+
+            1. No markdown
+            2. No ```json
+            3. No explanation
+            4. JSON only
+            5. Title under 70 characters
+            6. Subtitle under 100 characters
+            7. Script should naturally fit {duration_seconds} seconds.
+            8. Generate EXACTLY {scene_count} points.
+            9. Each point should be one short sentence.
+
+            {past_context}
+            """
 
         try:
             response = self.llm.invoke(prompt)
@@ -149,59 +176,59 @@ Return ONLY JSON.
         except Exception as e:
             logger.error(f"Script generation failed: {e}")
             raise ScriptGenerationError(str(e)) from e
-        # Step 0: Check knowledge base for similar past content
-        similar_past = self.kb.search_similar(topic, threshold=0.65)
-        past_context = ""
+#         # Step 0: Check knowledge base for similar past content
+#         similar_past = self.kb.search_similar(topic, threshold=0.65)
+#         past_context = ""
 
-        if similar_past:
-            past_titles = [r["title"] for r in similar_past]
-            past_scripts = [r["script"][:200] for r in similar_past]
-            logger.info(f"KB: {len(similar_past)} similar past scripts found")
+#         if similar_past:
+#             past_titles = [r["title"] for r in similar_past]
+#             past_scripts = [r["script"][:200] for r in similar_past]
+#             logger.info(f"KB: {len(similar_past)} similar past scripts found")
 
-            past_context = f"""
-IMPORTANT — We have already covered similar topics:
-{chr(10).join([f'- "{t}"' for t in past_titles])}
+#             past_context = f"""
+# IMPORTANT — We have already covered similar topics:
+# {chr(10).join([f'- "{t}"' for t in past_titles])}
 
-Brief summaries of what was covered:
-{chr(10).join([f'• {s}...' for s in past_scripts])}
+# Brief summaries of what was covered:
+# {chr(10).join([f'• {s}...' for s in past_scripts])}
 
-Your new script MUST:
-1. NOT repeat the same angles or key points from the above
-2. Find a DIFFERENT perspective, angle, or specific aspect of the topic
-3. Reference that this builds on previous coverage if relevant
-"""
-        else:
-            logger.info("KB: No similar content — fresh angle, no constraints")
+# Your new script MUST:
+# 1. NOT repeat the same angles or key points from the above
+# 2. Find a DIFFERENT perspective, angle, or specific aspect of the topic
+# 3. Reference that this builds on previous coverage if relevant
+# """
+#         else:
+#             logger.info("KB: No similar content — fresh angle, no constraints")
 
-        # Build the generation prompt
-        prompt = f"""You are a professional video script writer.
+#         # Build the generation prompt
+#         prompt = f"""You are a professional video script writer.
 
-Topic: {topic}
-Style: {style}
-{past_context}
+# Topic: {topic}
+# Style: {style}
+# {past_context}
 
-Write a 30-second video script. Return ONLY valid JSON:
-{{
-"title": "specific title (max 60 chars)",
-"subtitle": "subtitle (max 80 chars)",
-"script": "full narration (60-90 words)",
-"points": ["point 1", "point 2", "point 3"],
-"channel_name": "AI Business Insights",
-"is_fresh_angle": {str(len(similar_past) == 0).lower()}
-}}
+# Write a 30-second video script. Return ONLY valid JSON:
+# {{
+# "title": "specific title (max 60 chars)",
+# "subtitle": "subtitle (max 80 chars)",
+# "script": "full narration (60-90 words)",
+# "points": ["point 1", "point 2", "point 3"],
+# "channel_name": "AI Business Insights",
+# "is_fresh_angle": {str(len(similar_past) == 0).lower()}
+# }}
 
-No markdown, no backticks."""
+# No markdown, no backticks."""
 
-        # ... rest of existing generate() method unchanged ...
-        try:
-            response = self.llm.invoke(prompt)
-            raw = response.content.strip()
-            if "```" in raw:
-                raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
-            result = json.loads(raw.strip())
-            logger.info(f"Script generated: '{result.get('title')}'")
-            return result
-        except json.JSONDecodeError as e:
-            raise ScriptGenerationError(f"JSON parse failed for '{topic}'") from e
+#         # ... rest of existing generate() method unchanged ...
+#         try:
+#             response = self.llm.invoke(prompt)
+#             raw = response.content.strip()
+#             if "```" in raw:
+#                 raw = raw.split("```")[1]
+#                 if raw.startswith("json"):
+#                     raw = raw[4:]
+#             result = json.loads(raw.strip())
+#             logger.info(f"Script generated: '{result.get('title')}'")
+#             return result
+#         except json.JSONDecodeError as e:
+#             raise ScriptGenerationError(f"JSON parse failed for '{topic}'") from e
