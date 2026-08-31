@@ -252,11 +252,9 @@ if __name__ == "__main__":
     voice="indian_male",
     voice_provider="edge",
     style="educational",
-
     use_research=False,
     use_knowledge_base=True,
     use_ai_visuals=True,
-
     upload_to_youtube=False,
     post_to_instagram=True,
 
