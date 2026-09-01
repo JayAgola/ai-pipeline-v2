@@ -110,7 +110,8 @@ def run(config: PipelineConfig) -> dict:
         )
         results["audio_path"] = str(audio_path)
 
-        # Setp : visual Clips
+
+        # Setp 3: visual Clips
 
         pexels = PexelsAgent()
 
@@ -154,7 +155,7 @@ def run(config: PipelineConfig) -> dict:
         #         clip_files = []
         
 
-        # Step 3: Video
+        # Step 4: Video
         video_agent = VideoAgent()
         # video_path = video_agent.render(
         #     title=script_data["title"],
@@ -171,12 +172,12 @@ def run(config: PipelineConfig) -> dict:
         )
         results["video_path"] = str(video_path)
 
-        # After step 3 (video render) succeeds:
+        # After step 4 (video render) succeeds:
         kb = ContentKnowledgeBase()
         kb.store_script(config.topic, script_data)
         logger.info(f"Script saved to knowledge base. Total in KB: {kb.count_total()}")
 
-        # # Step 4: YouTube upload (optional)
+        # # Step 5: YouTube upload (optional)
         # if upload_to_youtube:
         #     logger.info("Uploading to YouTube...")
 
@@ -192,7 +193,7 @@ def run(config: PipelineConfig) -> dict:
         # else:
         #     youtube_url = ""
 
-        # Step 5: Instagram post (optional)
+        # Step 6: Instagram post (optional)
         # if post_to_instagram:
         #     logger.info("Posting to Instagram...")
 
@@ -257,7 +258,6 @@ if __name__ == "__main__":
     use_ai_visuals=True,
     upload_to_youtube=False,
     post_to_instagram=True,
-
     channel_name="AI Business Insights",
 )
 
