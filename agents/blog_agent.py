@@ -178,20 +178,6 @@ No markdown code blocks. Return ONLY the JSON object."""
         """Publish post to Dev.to — completely free, no WordPress needed."""
         logger.info("Publishing to Dev.to...")
 
-        # Dev.to uses Markdown, not HTML — convert basic HTML
-        # markdown_content = (post_data["content"].replace("", "## ")
-        #     .replace("", "\n")
-        #     .replace("", "### ")
-        #     .replace("", "\n")
-        #     .replace("", "")
-        #     .replace("", "\n\n")
-        #     .replace("", "**")
-        #     .replace("", "**")
-        #     .replace("", "")
-        #     .replace("", "")
-        #     .replace("", "- ")
-        #     .replace("", "\n")
-        # )
         markdown_content = markdownify(post_data["content"])
 
         payload = {
