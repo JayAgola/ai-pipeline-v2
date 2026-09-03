@@ -96,7 +96,6 @@ Write a comprehensive, SEO-optimised blog post. Return ONLY valid JSON:
 , 
 , 
 , 
-
 , 
 ,  tags\\n- Minimum 800 words\\n- Include keyword naturally 4-6 times",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
