@@ -150,6 +150,8 @@ def run(config: PipelineConfig) -> dict:
         #             visual_agent,
         #             prompts,
         #         )
+
+        
         #     except Exception as e:
         #         logger.warning(f"AI clip generation failed: {e}")
         #         clip_files = []
