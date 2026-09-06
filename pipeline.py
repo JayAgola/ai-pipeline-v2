@@ -183,12 +183,14 @@ def run(config: PipelineConfig) -> dict:
         # if upload_to_youtube:
         #     logger.info("Uploading to YouTube...")
 
+
         #     upload_agent = UploadAgent()
         #     yt_result = upload_agent.upload(
         #         video_path=str(video_path),
         #         title=script_data["title"],
         #         description=f"AI-generated video about: {topic}"
         #     )
+
 
         #     results["platforms"]["youtube"] = yt_result
         #     youtube_url = yt_result.get("url", "")
