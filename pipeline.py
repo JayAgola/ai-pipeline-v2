@@ -182,25 +182,21 @@ def run(config: PipelineConfig) -> dict:
         # # Step 5: YouTube upload (optional)
         # if upload_to_youtube:
         #     logger.info("Uploading to YouTube...")
-
-
         #     upload_agent = UploadAgent()
         #     yt_result = upload_agent.upload(
         #         video_path=str(video_path),
         #         title=script_data["title"],
         #         description=f"AI-generated video about: {topic}"
         #     )
-
-
         #     results["platforms"]["youtube"] = yt_result
         #     youtube_url = yt_result.get("url", "")
         # else:
         #     youtube_url = ""
 
+
         # Step 6: Instagram post (optional)
         # if post_to_instagram:
         #     logger.info("Posting to Instagram...")
-
         #     # Generate thumbnail
         #     thumb_agent = ThumbnailAgent()
         #     thumb_path = thumb_agent.generate(
