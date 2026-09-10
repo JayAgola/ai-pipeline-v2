@@ -19,6 +19,8 @@ for topic in test_topics:
 
 print(f"\nKB now has {kb.count_total()} scripts")
 
+
+
 # Now test a related topic
 print("\nGenerating script for related topic WITH KB awareness...")
 new_script = agent.generate(
