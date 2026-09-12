@@ -140,6 +140,9 @@ def post_image_to_instagram(
     pub_res.raise_for_status()
     post_id = pub_res.json()["id"]
 
+
+
+
     # Step 5: Get the permalink
     permalink_url = f"{BASE_URL}/{post_id}"
     permalink_params = {
@@ -149,12 +152,16 @@ def post_image_to_instagram(
     permalink_res = requests.get(permalink_url, params=permalink_params)
     permalink_data = permalink_res.json()
 
+
+
     result = {
         "post_id": post_id,
         "permalink": permalink_data.get("permalink", ""),
         "timestamp": permalink_data.get("timestamp", ""),
         "caption": caption[:50] + "..."
     }
+
+
 
     print(f"✅ Posted successfully!")
     print(f"   Post ID: {post_id}")
