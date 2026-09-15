@@ -136,6 +136,8 @@ def post_image_to_instagram(
         "creation_id": container_id,
         "access_token": ACCESS_TOKEN
     }
+
+    
     pub_res = requests.post(publish_url, data=publish_params)
     pub_res.raise_for_status()
     post_id = pub_res.json()["id"]
@@ -146,8 +148,12 @@ def post_image_to_instagram(
         "fields": "permalink,timestamp",
         "access_token": ACCESS_TOKEN
     }
+
+
     permalink_res = requests.get(permalink_url, params=permalink_params)
     permalink_data = permalink_res.json()
+
+
 
     result = {
         "post_id": post_id,
