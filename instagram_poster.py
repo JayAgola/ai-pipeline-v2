@@ -65,8 +65,6 @@ def get_instagram_account_id() -> str:
     res = requests.get(url, params=params)
     res.raise_for_status()
     data = res.json()
-
-    
     ig_account = data.get("instagram_business_account")
     if not ig_account:
         raise ValueError(
@@ -74,9 +72,6 @@ def get_instagram_account_id() -> str:
             "Go to Instagram Settings → Switch to Professional Account → "
             "Connect to your Facebook Page."
         )
-
-
-
     print(f"✅ Instagram Account ID: {ig_account['id']}")
     return ig_account["id"]
 
